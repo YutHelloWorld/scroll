@@ -9,77 +9,73 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      arr: [1,2,3,4],
+      arr: [1,2,3,4,5,6,7],
       c: 0
     }
     this.el = React.createRef();
+    this.inner = React.createRef();
   }
   
-  
+  autoPlay = () => {
+    this.play = setInterval(() => {
+      this.scroll.scrollBy(0, -5,1000)
+    },100)
+  }
+
+  clearPlay= () => {
+    clearInterval(this.play)
+  }
 
   handleScroll = ({x, y}) => {
-    const itemCount = 4
-    const perHeight = 100;
-    const { c } = this.state
-    let n
-    if (y<0) {
-      n = parseInt((-y) / perHeight);
-      
-      if(n===2) {
-        if(!c) {
-          this.setState({
-            arr: [3,4,1,2],
-            c: 1
-          })
-          console.log('n---',n);
-        } else {
-          this.setState({
-            arr: [1,2,3,4],
-            c: 0
-          })
-          console.log('n---',n);
-        }
-        this.scroll.scrollTo(0,0)
+    const perHeight = 100;  // 单个卡片高度
+    let count = 250; // 可视高度
+    let n,head,body
+    let arr = this.state.arr
+    
+    let remain
+    const length = arr.length
+    const totalHeight = length *perHeight;
+    
+    if (y<=0) {
+      remain = totalHeight + y
+      n = parseInt(-y / perHeight)
+      // 2.5个向上取整3个作为上限
+      if (remain < Math.ceil(count/perHeight)*perHeight && remain >= count ) {
+        head = arr.slice(0, n);
+        body = arr.slice(n)
+        arr = body.concat(head)
+        this.setState({
+          arr
+        })
+        this.scroll.scrollTo(0,0,0);
       }
     } else {
-      n = parseInt((y) / perHeight);
-      if (!c) {
-        this.setState({
-          arr: [3,4,1,2],
-          c: 1
-        })
-      }else {
-        this.setState({
-          arr: [1,2,3,4],
-          c: 0
-        })
-      }
-      
-      this.scroll.scrollTo(0,-200)
+      const j =  Math.ceil(count/perHeight)
+      head = arr.slice(0, j)
+      body = arr.slice(j)
+      arr = body.concat(head)
+      this.setState({
+        arr
+      })
+      this.scroll.scrollTo(0, (j- length) * perHeight,0)
     }
-    
   }
   
   
   componentDidMount() {
     this.scroll = new BScroll(this.el.current,{
       probeType: 3,
-      click: true,
-      // bounce: false,
-      // momentum: false
+      // click: true,
+      momentum: false,
+      // bounce: false
     })
     this.scroll.on('scroll',this.handleScroll)
+    this.autoPlay();
   }
   
-  
-  componentDidUpdate(prevProps, prevState) {
-    this.scroll = new BScroll(this.el.current,{
-      probeType: 3,
-      click: true,
-      // bounce: false,
-      // momentum: false
-    })
-    this.scroll.on('scroll',this.handleScroll)
+  componentWillUnmount() {
+    this.clearPlay();
+    this.scroll.destroy();
   }
   
   shouldComponentUpdate(nextProps, nextState) {
@@ -93,8 +89,8 @@ export default class App extends Component {
   render() {
     const { arr } = this.state
     return (
-      <div style={{overflowY: 'auto', width: 100, height: 200, marginTop: 100, background: 'hsl(20, 50%, 90%)' }} ref={this.el}> 
-        <div>
+      <div style={{overflowY: 'auto', width: 100, height: 250, marginTop: 50, background: 'hsl(20, 50%, 90%)' }} ref={this.el}> 
+        <div ref={this.inner}>
           {arr.map((v,i) => <Item v={v} key={v} />)}
         </div>
       </div>
