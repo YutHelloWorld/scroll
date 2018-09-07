@@ -9,89 +9,51 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      arr: [1,2,3,4,5,6,7],
-      c: 0
-    }
-    this.el = React.createRef();
-    this.inner = React.createRef();
-  }
-  
-  autoPlay = () => {
-    this.play = setInterval(() => {
-      this.scroll.scrollBy(0, -5,1000)
-    },100)
-  }
-
-  clearPlay= () => {
-    clearInterval(this.play)
-  }
-
-  handleScroll = ({x, y}) => {
-    const perHeight = 100;  // 单个卡片高度
-    let count = 250; // 可视高度
-    let n,head,body
-    let arr = this.state.arr
-    
-    let remain
-    const length = arr.length
-    const totalHeight = length *perHeight;
-    
-    if (y<=0) {
-      remain = totalHeight + y
-      n = parseInt(-y / perHeight)
-      // 2.5个向上取整3个作为上限
-      if (remain < Math.ceil(count/perHeight)*perHeight && remain >= count ) {
-        head = arr.slice(0, n);
-        body = arr.slice(n)
-        arr = body.concat(head)
-        this.setState({
-          arr
-        })
-        this.scroll.scrollTo(0,0,0);
+      arr: [1,2,3,4,1,2,3,4],
+      style: {
+        animation: 'scroll 3s linear 0s infinite running'
       }
-    } else {
-      const j =  Math.ceil(count/perHeight)
-      head = arr.slice(0, j)
-      body = arr.slice(j)
-      arr = body.concat(head)
+    }
+  }   
+
+  handleClick = () => {
+    console.log(this.state.style.animation.includes('running'));
+    if (this.state.style.animation.includes('running')){
       this.setState({
-        arr
+        style: {
+          animation: 'scroll 1s linear 0s infinite paused'
+        }
       })
-      this.scroll.scrollTo(0, (j- length) * perHeight,0)
+    }else {
+      this.setState({
+        style: {
+          animation: 'scroll 1s linear 0s infinite running'
+        }
+      })
     }
   }
   
-  
-  componentDidMount() {
-    this.scroll = new BScroll(this.el.current,{
-      probeType: 3,
-      // click: true,
-      momentum: false,
-      // bounce: false
-    })
-    this.scroll.on('scroll',this.handleScroll)
-    this.autoPlay();
+  componentWillMount() {
+    const style = `@keyframes scroll {
+      0% {
+        transform: translate(0,0) scale(1) translateZ(0);
+      }
+      100% {
+        transform: translate(0,-${100*4}px) scale(1) translateZ(0);
+      }
+    }`
+    const styleEl = document.createElement('style')
+    styleEl.textContent = style
+    document.querySelector('head').appendChild(styleEl)
   }
-  
-  componentWillUnmount() {
-    this.clearPlay();
-    this.scroll.destroy();
-  }
-  
-  shouldComponentUpdate(nextProps, nextState) {
-    return JSON.stringify(this.state.arr) !== JSON.stringify(nextState.arr)
-  }
-  
-  componentDidUpdate(prevProps, prevState) {
-    // console.log(this.state.translateYs);
-  }
-  
+
   render() {
-    const { arr } = this.state
+    const { arr, style } = this.state
+    const _style = {overflowY: 'auto', width: 100, height: 250, margin: 50, background: 'hsl(20, 50%, 90%)'}
     return (
-      <div style={{overflowY: 'auto', width: 100, height: 250, marginTop: 50, background: 'hsl(20, 50%, 90%)' }} ref={this.el}> 
-        <div ref={this.inner}>
-          {arr.map((v,i) => <Item v={v} key={v} />)}
+      <div className="container" style={_style}> 
+        <div style={style} onClick={this.handleClick}>
+          {arr.map((v,i) => <Item v={v} key={i} />)}
         </div>
       </div>
     )
